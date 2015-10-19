@@ -1,0 +1,1 @@
+<div>hi, your password has been reset. your new password is {{ isset($newpass) ? $newpass: '' }}</div>

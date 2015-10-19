@@ -1,0 +1,1 @@
+<div>hi, {{ isset($userEmail) ? $userEmail : '' }} welcome to Express Rental.</div>

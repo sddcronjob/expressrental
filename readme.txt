@@ -1,0 +1,2 @@
+1. For hide and show alerts, the functionality is implemented on the password reset modal.
+The alert message comes up on the modal when the reset password is done and automatically gets hide. This is done using ajax and jquery.

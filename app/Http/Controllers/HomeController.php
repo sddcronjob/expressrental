@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
+use Mail;
 use Auth;
 use App\Model\User;
+use App\Model\BlogPost;
 
 class HomeController extends Controller {
 
@@ -20,11 +22,20 @@ class HomeController extends Controller {
     |
     */
 
-
+    /**
+    Method to show the home page
+    @param void
+    @return view
+    */
     public function index() {
     	return view('Home.home');
 	}
 
+    /**
+    Method to login the user and show appropriate page
+    @param void
+    @return view
+    */
 	public function login() {
         $mailuser = '';
         
@@ -32,7 +43,6 @@ class HomeController extends Controller {
             return Redirect::to('/');
         }
         
-
         if (Request::isMethod('post')) {
                 $userData = array(
                     'email' => Input::get('email'),
@@ -51,6 +61,11 @@ class HomeController extends Controller {
         }
     }
 
+    /**
+    Method to get information about the logged in user
+    @param void
+    @return view
+    */
     public function userList(){
         if (!Auth::check()) {
             return Redirect::to('/');
@@ -65,7 +80,17 @@ class HomeController extends Controller {
             $user->name = Input::get('name');
             $user->email = Input::get('email');
             $user->password = $password;
+            $username = Input::get('name');
+            $userEmail = Input::get('email');
+
             if ($user->save()) {
+                 try {
+                    Mail::send('emails.welcome', ['userEmail' => $username], function ($m) use ($userEmail,$username) {
+                    $m->to($userEmail, $username)->subject('Express Rental');
+                });
+            }catch(Exception $ex){
+
+         }
                 $message = 'Added Successfully';
                 return Redirect::to('/users/list')->with('message', $message);
             } else {
@@ -78,5 +103,48 @@ class HomeController extends Controller {
                 ->paginate(5);
             return view('Home.list')->with(compact('allUserInfo'));
         }
+    }
+
+    /**
+    Method to reset the password
+    @param void
+    @return int
+    */
+    public function resetPassword(){
+        $userID = Input::get('id');
+        $pass = Input::get('password');
+        $userEmail = Input::get('resetemail');
+        if(!empty($userID)) {
+            $user = new User();
+            $user = User::find($userID);
+            $user->id = $userID;
+            $user->password = Hash::make(($pass));
+            if ($user->save()) {
+                try {
+                    Mail::send('emails.resetpassd', ['newpass' => $pass ], function ($m) use ($userEmail) {
+                    $m->to($userEmail)->subject('Express Rental');
+                });
+            }catch(Exception $ex){
+
+         }
+                echo 1;
+            } else {
+                echo 0;
+            }
+        }
+         exit;
+    }
+
+    /**
+    Method to view the relationships for blog posts added by user
+    @param void
+    @return view
+    */
+    public function viewRelationship(){
+        if (!Auth::check()) {
+            return Redirect::to('/');
+        }
+        $arrBlogPostInfo = BlogPost::with(array('blog_images','users','blog_location'))->where('blog_posts.user_id',Auth::id())->get();
+        return view('Home.relationship')->with(compact('arrBlogPostInfo'));
     }
 }

@@ -28,6 +28,14 @@ Route::post('/siteuser/login', [
 ]);
 */
 
+
+Route::any('/user/reset/password', 'HomeController@resetPassword');
+
+Route::get('/view/relation/blogpost', [
+    'as' => 'view.relationship',
+    'uses' => 'HomeController@viewRelationship'
+]);
+
 Route::match(['get', 'post'], '/siteuser/login', [
     'as' => 'LoginPage',
     'uses' => 'HomeController@login'
